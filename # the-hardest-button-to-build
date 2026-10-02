@@ -1,0 +1,386 @@
+# The Hardest Button to Build Is "Place Order"
+
+> You tap **"Place Order."**
+>
+> A second later, your screen says:
+>
+> **Order confirmed.**
+>
+> It feels like one action.
+>
+> But what actually happened between those two moments?
+
+I’ve always been fascinated by things that look simple from the outside but become surprisingly complicated when you look underneath.
+
+So I picked something almost everyone has done: **ordering food.**
+
+Here’s what I found when I followed the journey of a single tap on **"Place Order."**
+
+---
+
+## 1. The first illusion: the button
+
+You open the app.
+
+You choose biryani.
+
+You enter your address.
+
+You tap **Place Order**.
+
+Simple.
+
+But that tap has to answer several questions:
+
+- Who are you?
+- Is your session still valid?
+- What exactly did you order?
+- Is the restaurant still accepting orders?
+- Is that item still available?
+- Did the price change?
+- Is your address deliverable?
+- Which payment method are you using?
+
+The button looks like the beginning.
+
+Really, it's the beginning of a conversation between several different systems.
+
+---
+
+## 2. Imagine a restaurant with no single manager
+
+Here's the analogy I like.
+
+Imagine a restaurant where every important job is handled by a different person.
+
+One person checks your identity.
+
+Another handles payment.
+
+Another talks to the kitchen.
+
+Another watches delivery riders.
+
+Another sends you messages.
+
+Another watches the map.
+
+Nobody has the entire picture.
+
+They communicate by passing little notes to each other.
+
+Now imagine that one of those people doesn't answer.
+
+The restaurant still has to function.
+
+That's roughly the kind of problem software engineers deal with when building systems like this.
+
+---
+
+## 3. Your order starts moving through states
+
+Your order isn't simply:
+
+**ordered → food → delivered**
+
+It might pass through something more like:
+
+**Cart**
+
+↓
+
+**Payment processing**
+
+↓
+
+**Order created**
+
+↓
+
+**Restaurant notified**
+
+↓
+
+**Restaurant accepted**
+
+↓
+
+**Food being prepared**
+
+↓
+
+**Rider assigned**
+
+↓
+
+**Picked up**
+
+↓
+
+**Out for delivery**
+
+↓
+
+**Delivered**
+
+Those states matter.
+
+Because the app needs to know what is allowed to happen next.
+
+You shouldn't see **"Rider picked up your food"** before a restaurant has even accepted the order.
+
+And if the restaurant rejects it?
+
+The system needs another path.
+
+---
+
+## 4. Then the interesting problems begin
+
+Suppose you tap **Pay**.
+
+Your bank says:
+
+**Payment successful.**
+
+But the order service crashes immediately afterward.
+
+Now you have a strange situation:
+
+**You paid.**
+
+**But there is no confirmed order.**
+
+What should happen?
+
+The system can't simply say:
+
+> "Oops."
+
+It needs a way to reconcile what happened.
+
+Maybe the payment is checked again.
+
+Maybe the order is retried.
+
+Maybe the payment is refunded.
+
+Maybe the system discovers that the order actually existed even though the first response never reached you.
+
+This is why failure isn't an unusual situation in software.
+
+**Failure is one of the situations you have to design for.**
+
+---
+
+## 5. What if the restaurant doesn't respond?
+
+Imagine the restaurant's system never answers.
+
+Did it receive the order?
+
+Did it not receive it?
+
+Is it just slow?
+
+Should we send it again?
+
+If we send it again, will the restaurant accidentally prepare two meals?
+
+Now we're no longer talking about food.
+
+We're talking about **uncertainty**.
+
+And uncertainty is one of the hardest things for a system to handle.
+
+---
+
+## 6. Meanwhile, something else is happening
+
+The app also needs to keep you informed.
+
+You get:
+
+**"Restaurant accepted your order."**
+
+Then:
+
+**"Your food is being prepared."**
+
+Then:
+
+**"Finding a delivery partner."**
+
+Then:
+
+**"Your rider is on the way."**
+
+Those notifications aren't just decorative messages.
+
+They're the visible result of events happening somewhere else in the system.
+
+Something changed.
+
+Another part of the system noticed.
+
+That change was communicated.
+
+The app updated what you see.
+
+And all of this has to happen without making the user think about any of it.
+
+---
+
+## 7. The map makes it even stranger
+
+Now add location.
+
+Your rider is moving.
+
+The app receives location updates.
+
+Your screen shows the rider moving on a map.
+
+The system estimates arrival time.
+
+Traffic changes.
+
+The rider takes a different road.
+
+The restaurant takes longer than expected.
+
+Suddenly the original estimate is wrong.
+
+The system has to keep updating its picture of reality.
+
+The interesting part?
+
+**Reality doesn't wait for the software to catch up.**
+
+---
+
+## 8. And then there's inventory
+
+You ordered the last chicken biryani.
+
+At almost exactly the same moment, someone else ordered it too.
+
+Who gets it?
+
+If the system isn't careful, both customers could receive:
+
+**"Order confirmed."**
+
+But there is only one biryani.
+
+This is one of the reasons seemingly ordinary features become difficult.
+
+The real world contains competition, timing, delays, and things changing underneath you.
+
+Software has to represent all of that somehow.
+
+---
+
+## 9. So why not just make everything wait?
+
+You could imagine making every system wait for every other system:
+
+Payment waits for the restaurant.
+
+The restaurant waits for payment.
+
+The delivery system waits for both.
+
+The notification system waits for everything.
+
+Sounds safe.
+
+It also sounds painfully slow.
+
+And if one service goes down, everything could stop.
+
+So engineers have to make trade-offs.
+
+Sometimes systems communicate asynchronously.
+
+Sometimes they retry.
+
+Sometimes they time out.
+
+Sometimes they store an event and process it later.
+
+Sometimes they deliberately choose eventual consistency rather than making the entire system wait.
+
+There isn't one magical architecture that makes all of these problems disappear.
+
+---
+
+## 10. The user shouldn't see any of this
+
+And that's probably my favourite part.
+
+After all that complexity...
+
+**the user still sees a button.**
+
+Tap.
+
+**"Order confirmed."**
+
+That's the trick.
+
+Good engineering often makes complicated machinery feel boring.
+
+The user doesn't care that five services exchanged events.
+
+They don't care about retries.
+
+They don't care about state transitions.
+
+They just want to know:
+
+**"Where is my food?"**
+
+And honestly, that's a surprisingly difficult question to answer correctly.
+
+---
+
+## 11. The lesson I took from this
+
+I used to think complexity meant having more features.
+
+Now I think there's another kind of complexity:
+
+**making many independent things behave like one simple thing.**
+
+A food-ordering app feels like one product.
+
+Underneath, it's a collection of systems that have to communicate, recover from failures, deal with changing information, and somehow agree on what just happened.
+
+The better that coordination works,
+
+**the less complexity the user has to see.**
+
+That's why I find "Place Order" such an interesting button.
+
+It looks like one action.
+
+But underneath it is a small story about:
+
+**state, communication, uncertainty, failure, and trust.**
+
+And maybe that's what makes simple software so hard:
+
+> **The simpler something feels to the person using it, the more carefully someone had to think about everything the user never sees.**
+
+---
+
+### Why I wrote this
+
+I like taking ordinary things apart just to understand what makes them work.
+
+A food order is ordinary.
+
+The systems behind it aren't.
+
+And sometimes the most interesting engineering problems are hiding behind the simplest buttons.
